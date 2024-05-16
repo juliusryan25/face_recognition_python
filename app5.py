@@ -1,8 +1,4 @@
-import cv2
-import face_recognition
-import numpy as np
-from datetime import datetime
-import time
+from package import *
 
 # Ambang batas untuk mengidentifikasi wajah yang tidak dikenal
 UNKNOWN_THRESHOLD = 3
@@ -12,10 +8,10 @@ vid = cv2.VideoCapture(0)
 # Data dictionary yang Anda miliki
 data = {
     "employee" : [
-        {"id":"ID001","nama": "Julius", "image": "wajah/muka1.jpg"},
-        {"id":"ID002","nama": "daffa", "image": "wajah/muka2.jpg"},
+        {"id":"ID001","nama": "Julius", "image": "package/wajah/muka1.jpg"},
+        {"id":"ID002","nama": "daffa", "image": "package/wajah/muka2.jpg"},
         # {"id":"ID003","nama": "ipul", "image": "muka3.jpeg"},
-        {"id":"ID004","nama": "maemunah", "image": "wajah/muka4.jpeg"}
+        {"id":"ID004","nama": "maemunah", "image": "package/wajah/muka4.jpeg"}
     ]
 }
 
@@ -107,9 +103,10 @@ while True:
             # Pastikan face_image tidak kosong sebelum menyimpan
             if face_image.size != 0:
                 # Simpan gambar wajah dengan nama yang sesuai
-                time.sleep(2)
+               
                 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-                face_filename = f'{name}_{timestamp}.jpg'
+                face_filename = f'{name}_{timestamp}.jpg' 
+                # time.sleep(2)
                 cv2.imwrite(face_filename, face_image)
                 print(f"Gambar berhasil disimpan sebagai {face_filename}")
                 captured_names.append(name)
