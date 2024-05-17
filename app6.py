@@ -35,7 +35,6 @@ for row in rows:
     else:
         print(f"Tidak ada wajah yang ditemukan dalam gambar {image_file}.")
 
-# print(data)
 # Tutup cursor dan koneksi
 cur.close()
 conn.close()
@@ -118,12 +117,21 @@ while True:
 
             # Pastikan face_image tidak kosong sebelum menyimpan
             if face_image.size != 0:
+                # Ganti nilai compression_level sesuai kebutuhan (0-9)
+                compression_level = 9
+                encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), compression_level]
+                _, compressed_image = cv2.imencode('.jpg', face_image, encode_param)
                 # Simpan gambar wajah dengan nama yang sesuai
-               
                 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
                 face_filename = f'{name}_{timestamp}.jpg' 
                 file_path = os.path.join(folder_path, face_filename)
-                cv2.imwrite(file_path, face_image)
+
+                compressed_image_path = os.path.join(folder_path, f'compressed_{face_filename}')
+                with open(compressed_image_path, 'wb') as f:
+                    f.write(compressed_image)
+                print(f"Gambar berhasil disimpan sebagai {compressed_image_path}")
+
+                # cv2.imwrite(file_path, face_image)
                 # time.sleep(2)
                 print(f"Gambar berhasil disimpan sebagai {face_filename}")
                 captured_names.append(name)

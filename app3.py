@@ -1,10 +1,4 @@
-import cv2
-import face_recognition
-import numpy as np
-from datetime import datetime
-import psycopg2
-import os
-from koneksi import get_connection
+from package import *
 
 # Ambang batas untuk mengidentifikasi wajah yang tidak dikenal
 UNKNOWN_THRESHOLD = 0.5
@@ -32,7 +26,7 @@ data = {}
 for row in rows:
     id, name, image_file = row
     data[f"employee"] = [{"id": id, "nama": name, "image": image_file}]
-    image_source = face_recognition.load_image_file("wajah/"+image_file)
+    image_source = face_recognition.load_image_file("package/wajah/"+image_file)
     face_encodings = face_recognition.face_encodings(image_source)
     if face_encodings:
         known_face_encodings.append(face_encodings[0])
@@ -84,7 +78,7 @@ while True:
     process_this_frame = not process_this_frame
 
     # Tentukan path folder tempat Anda ingin menyimpan gambar
-    folder_path = 'capture'
+    folder_path = 'package/capture'
 
     # Pastikan folder tersebut ada, jika tidak, buat folder tersebut
     if not os.path.exists(folder_path):
