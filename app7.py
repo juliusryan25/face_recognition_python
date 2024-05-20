@@ -3,22 +3,13 @@ from package import *
 # Ambang batas untuk mengidentifikasi wajah yang tidak dikenal
 UNKNOWN_THRESHOLD = 3
 
+#inisiasi untuk capture image
 vid = cv2.VideoCapture(0)
 
-# Buat koneksi ke database
-conn = get_connection()
-
-# Cursor untuk menjalankan query
-cur = conn.cursor()
-
-# Jalankan query untuk mengambil data wajah yang dikenal
-cur.execute("SELECT id, nama_karyawan, foto_karyawan FROM data_karyawan")
-rows = cur.fetchall()
-
-# Dictionary untuk menyimpan data dari database
+# Dictionary untuk menampung data dari database
 data = {}
 
-# Inisialisasi daftar untuk menyimpan enkoding dan nama
+# Inisialisasi daftar untuk menampung enkoding dan nama
 known_face_encodings = []
 known_face_names = []
 
@@ -34,6 +25,7 @@ for row in rows:
         known_face_names.append(name)
     else:
         print(f"Tidak ada wajah yang ditemukan dalam gambar {image_file}.")
+
 
 # Tutup cursor dan koneksi
 cur.close()
@@ -117,20 +109,14 @@ while True:
 
             # Pastikan face_image tidak kosong sebelum menyimpan
             if face_image.size != 0:
-                # Ganti nilai compression_level sesuai kebutuhan (0-9)
-                compression_level = 9
-                encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), compression_level]
-                _, compressed_image = cv2.imencode('.jpg', face_image, encode_param)
-                
                 # Simpan gambar wajah dengan nama yang sesuai
+               
                 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
                 face_filename = f'{name}_{timestamp}.jpg' 
                 file_path = os.path.join(folder_path, face_filename)
-
-                compressed_image_path = os.path.join(folder_path, f'compressed_{face_filename}')
-                with open(compressed_image_path, 'wb') as f:
-                    f.write(compressed_image)
-                print(f"Gambar berhasil disimpan sebagai {compressed_image_path}")
+                cv2.imwrite(file_path, face_image)
+                # time.sleep(2)
+                print(f"Gambar berhasil disimpan sebagai {face_filename}")
                 captured_names.append(name)
 
     # Keterangan jumlah wajah yang terdeteksi

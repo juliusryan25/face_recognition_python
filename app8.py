@@ -3,22 +3,15 @@ from package import *
 # Ambang batas untuk mengidentifikasi wajah yang tidak dikenal
 UNKNOWN_THRESHOLD = 3
 
-vid = cv2.VideoCapture(0)
+#inisiasi untuk capture image
+vid = cv2.VideoCapture('rtsp://admin:Admin1234@172.17.143.55:554')
 
-# Buat koneksi ke database
-conn = get_connection()
+# vid = cv2.VideoCapture()
 
-# Cursor untuk menjalankan query
-cur = conn.cursor()
-
-# Jalankan query untuk mengambil data wajah yang dikenal
-cur.execute("SELECT id, nama_karyawan, foto_karyawan FROM data_karyawan")
-rows = cur.fetchall()
-
-# Dictionary untuk menyimpan data dari database
+# Dictionary untuk menampung data dari database
 data = {}
 
-# Inisialisasi daftar untuk menyimpan enkoding dan nama
+# Inisialisasi daftar untuk menampung enkoding dan nama
 known_face_encodings = []
 known_face_names = []
 
@@ -35,10 +28,10 @@ for row in rows:
     else:
         print(f"Tidak ada wajah yang ditemukan dalam gambar {image_file}.")
 
+
 # Tutup cursor dan koneksi
 cur.close()
 conn.close()
-
 
 face_locations = []
 face_encodings = []
@@ -49,11 +42,10 @@ captured_names = []  # Daftar untuk menyimpan nama yang telah di-capture
 while True:
     ret, frame = vid.read()
     frame = cv2.flip(frame, 1)
-
+    
     # Tambahkan timestamp pada frame
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     cv2.putText(frame, timestamp, (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 2)
-
 
     # Skala kecil dan konversi gambar
     small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
@@ -94,6 +86,7 @@ while True:
         bottom *= 4
         left *= 4
 
+        # Membedakan warna jika wajah tidak dikenali
         if name == "Unknown" :
             rectangle_color = (0,0,225)
         elif name != "Unknown" :
@@ -117,31 +110,45 @@ while True:
 
             # Pastikan face_image tidak kosong sebelum menyimpan
             if face_image.size != 0:
-                # Ganti nilai compression_level sesuai kebutuhan (0-9)
-                compression_level = 9
-                encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), compression_level]
-                _, compressed_image = cv2.imencode('.jpg', face_image, encode_param)
-                
-                # Simpan gambar wajah dengan nama yang sesuai
-                timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-                face_filename = f'{name}_{timestamp}.jpg' 
-                file_path = os.path.join(folder_path, face_filename)
 
-                compressed_image_path = os.path.join(folder_path, f'compressed_{face_filename}')
-                with open(compressed_image_path, 'wb') as f:
-                    f.write(compressed_image)
-                print(f"Gambar berhasil disimpan sebagai {compressed_image_path}")
-                captured_names.append(name)
+                # Proses Kompres Gambar
+                def compress_and_save_image(image,name,folder_path,quality=40):
+                    # Mengonversi frame OpenCV ke format PIL Image
+                    pil_image = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+                    
+                    # Menyiapkan buffer in-memory sebagai file
+                    buffer = io.BytesIO()
+                    
+                    # Menyimpan gambar ke buffer dengan kualitas tertentu
+                    pil_image.save(buffer, format="JPEG", quality=quality, optimize=True)
+                    
+                    # Mendapatkan byte data dari buffer
+                    image_data = buffer.getvalue()
+
+                    # Penamaan File
+                    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
+                    face_filename = f'{name}_{timestamp}.jpg' 
+                    file_path = os.path.join(folder_path, face_filename)
+                   
+                    # Menyimpan gambar ke folder tujuan
+                    with open(file_path, 'wb') as f:
+                        f.write(image_data)
+                    
+                    # Print Keterangan gambar barhasil disimpan & menyimpan nama pegawai yang berhasil dipindai 
+                    print(f"Gambar berhasil disimpan sebagai {face_filename}")
+                    captured_names.append(name)
+
+                #Menjalankan Proses save capture
+                compress_and_save_image(face_image,name,folder_path)
 
     # Keterangan jumlah wajah yang terdeteksi
     jumlah_wajah_terdeteksi = str(len(face_names))
     cv2.putText(frame, jumlah_wajah_terdeteksi, (10, frame.shape[0] - 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 2)
-    
     cv2.imshow('frame', frame)#menampilkan aplikasi
 
     # Tekan 'q' untuk keluar dari loop
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+    if cv2.waitKey(10) & 0xFF == ord('q'):
+        break   
 
 # Lepaskan kamera dan tutup semua jendela
 vid.release()
