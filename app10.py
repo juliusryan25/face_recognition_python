@@ -1,7 +1,7 @@
 from package import *
 
 # Ambang batas untuk mengidentifikasi wajah yang tidak dikenal
-UNKNOWN_THRESHOLD = 3
+UNKNOWN_THRESHOLD = 2
 
 #inisiasi untuk capture image
 vid = cv2.VideoCapture(0)
@@ -21,6 +21,7 @@ for row in rows:
     face_encodings = face_recognition.face_encodings(image_source)
 
     if face_encodings:
+        
         known_face_encodings.append(face_encodings[0])
         known_face_names.append(name)
     else:
@@ -51,7 +52,7 @@ while True:
 
     if process_this_frame:
         # Dapatkan lokasi dan enkoding wajah
-        face_locations = face_recognition.face_locations(rgb_small_frame)
+        face_locations = face_recognition.face_locations(rgb_small_frame, number_of_times_to_upsample=2)
         face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
 
         face_names = []
@@ -77,6 +78,14 @@ while True:
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
 
+   # Fungsi untuk menyesuaikan ukuran teks dan mengembalikan ukuran teks serta background
+    def adjust_text_size(frame, text, max_width, min_font_size=0.5, max_font_size=1.5, step=0.1):
+        for font_size in np.arange(max_font_size, min_font_size, -step):
+            (text_width, text_height), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, font_size, 1)
+            if text_width <= max_width:
+                return font_size, (text_width, text_height)
+        return min_font_size, cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, min_font_size, 1)[0]
+    
     # Tampilkan hasil dalam jendela (KOTAK SCAN)
     for (top, right, bottom, left), name in zip(face_locations, face_names):
         top *= 4
@@ -84,17 +93,36 @@ while True:
         bottom *= 4
         left *= 4
 
+        # Posisi teks nama di bawah kotak deteksi wajah
+        text_bottom = bottom + 25  # Tambahkan padding
+        max_text_width = right - left
+
+        # Sesuaikan ukuran font berdasarkan lebar maksimum
+        font_size = adjust_text_size(frame, name, max_text_width)
+        
+        # Sesuaikan ukuran font dan dapatkan ukuran teks
+        font_size, (text_width, text_height) = adjust_text_size(frame, name, max_text_width)
+
+        # Pastikan teks tidak keluar dari frame
+        if text_bottom > frame.shape[0]:
+            text_bottom = frame.shape[0] - 10
+
         # Membedakan warna jika wajah tidak dikenali
         if name == "Unknown" :
             rectangle_color = (0,0,225)
         elif name != "Unknown" :
             rectangle_color = (0,225,0)
 
-        # Gambar kotak dan label nama
+        # Gambar kotak 
         cv2.rectangle(frame, (left, top), (right, bottom), (rectangle_color), 2)
-        cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (rectangle_color), cv2.FILLED)
-        font = cv2.FONT_HERSHEY_DUPLEX
-        cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+
+        # Gambar background label nama
+        text_bottom = bottom + 20  # Posisi vertikal teks
+        cv2.rectangle(frame, (left, text_bottom - text_height+3), (left + text_width, text_bottom+3), rectangle_color, cv2.FILLED)
+        
+        # Gambar label nama
+        cv2.putText(frame, name, (left + 1, bottom + 20), cv2.FONT_HERSHEY_SIMPLEX, font_size, (255, 255, 255), 1)
+       
 
         # Jika nama yang terdeteksi sesuai dan belum di-capture, lakukan screen capture
         if name in known_face_names and name not in captured_names:
@@ -104,13 +132,13 @@ while True:
             original_left = left * 1
 
             # Potong bagian wajah dari frame asli
-            face_image = frame[original_top:original_bottom, original_left:original_right]
+            face_image = frame[original_top:original_bottom+25, original_left:original_right]
 
             # Pastikan face_image tidak kosong sebelum menyimpan
             if face_image.size != 0:
 
                 # Proses Kompres Gambar
-                def compress_and_save_image(image,name,folder_path,quality=40):
+                def compress_and_save_image(image,name,folder_path,quality=70):
                     # Mengonversi frame OpenCV ke format PIL Image
                     pil_image = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
                     

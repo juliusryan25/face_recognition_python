@@ -4,7 +4,9 @@ from package import *
 UNKNOWN_THRESHOLD = 3
 
 #inisiasi untuk capture image
-vid = cv2.VideoCapture(0)
+vid = cv2.VideoCapture('rtsp://admin:Admin1234@172.17.143.55:554')
+
+# vid = cv2.VideoCapture()
 
 # Dictionary untuk menampung data dari database
 data = {}
@@ -26,6 +28,11 @@ for row in rows:
     else:
         print(f"Tidak ada wajah yang ditemukan dalam gambar {image_file}.")
 
+    if face_encodings:
+        known_face_encodings.append(face_encodings[0])
+        known_face_names.append(name)
+    else:
+        print(f"Tidak ada wajah yang ditemukan dalam gambar {image_file}.")
 
 # Tutup cursor dan koneksi
 cur.close()
@@ -39,19 +46,25 @@ captured_names = []  # Daftar untuk menyimpan nama yang telah di-capture
 
 while True:
     ret, frame = vid.read()
-    frame = cv2.flip(frame, 1)
-    
+    if not ret:
+        print("Koneksi terputus, mencoba untuk terhubung kembali...")
+        vid.release()  # Lepaskan resource kamera
+        cv2.destroyAllWindows()  # Tutup semua jendela OpenCV
+        time.sleep(5)  # Tunggu selama beberapa detik sebelum mencoba kembali
+        vid = cv2.VideoCapture('rtsp://admin:Admin1234@172.17.143.55:554')  # Coba terhubung kembali
+        continue
     # Tambahkan timestamp pada frame
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    cv2.putText(frame, timestamp, (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 2)
+    # timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # cv2.putText(frame, timestamp, (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 2)
 
     # Skala kecil dan konversi gambar
     small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
     rgb_small_frame = small_frame[:, :, ::-1]
+    #frame = cv2.flip(frame, 1)
 
     if process_this_frame:
         # Dapatkan lokasi dan enkoding wajah
-        face_locations = face_recognition.face_locations(rgb_small_frame)
+        face_locations = face_recognition.face_locations(rgb_small_frame,number_of_times_to_upsample=1)
         face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
 
         face_names = []
