@@ -4,7 +4,7 @@ from package import *
 UNKNOWN_THRESHOLD = 3
 
 #inisiasi untuk capture image
-vid = cv2.VideoCapture(0)
+vid = cv2.VideoCapture('rtsp://admin:Admin1234@172.17.143.55:554')
 
 # Dictionary untuk menampung data dari database
 data = {}
@@ -39,7 +39,7 @@ captured_names = []  # Daftar untuk menyimpan nama yang telah di-capture
 
 while True:
     ret, frame = vid.read()
-    frame = cv2.flip(frame, 1)
+    # frame = cv2.flip(frame, 1)
 
     # Tambahkan timestamp pada frame
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
