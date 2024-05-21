@@ -1,7 +1,7 @@
 from package import *
 
 # Ambang batas untuk mengidentifikasi wajah yang tidak dikenal
-UNKNOWN_THRESHOLD = 2
+UNKNOWN_THRESHOLD = 4
 
 #inisiasi untuk capture image
 vid = cv2.VideoCapture(0)
@@ -29,8 +29,8 @@ for row in rows:
 
 
 # Tutup cursor dan koneksi
-cur.close()
-conn.close()
+# cur.close()
+# conn.close()
 
 face_locations = []
 face_encodings = []
@@ -160,17 +160,29 @@ while True:
                         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
                         face_filename = f'{name}_{timestamp}.jpg' 
                         file_path = os.path.join(folder_path, face_filename)
+
+
                     
                         # Menyimpan gambar ke folder tujuan
                         with open(file_path, 'wb') as f:
                             f.write(image_data)
-                        
-                        # Print Keterangan gambar barhasil disimpan & menyimpan nama pegawai yang berhasil dipindai 
-                        print(f"Gambar berhasil disimpan sebagai {face_filename}")
+                       
                         captured_names.append(name)
 
+                        nama_karyawan = name
+                        jam_masuk = now
+
+                        upload_to_database(nama_karyawan, file_path, jam_masuk, conn)
+                        print(f"Gambar berhasil disimpan sebagai {face_filename}")
+                        captured_names.append(name)
+                        
                     #Menjalankan Proses save capture
                     compress_and_save_image(face_image,name,folder_path)
+
+                    # Mengambil data binary dari database
+                    binary_data = get_binary_data_from_database()
+                    # Menampilkan gambar
+                    show_binary_image(binary_data)
     else:
         # Tambahkan timestamp pada frame
         pesan = "Bukan Waktu Absen"

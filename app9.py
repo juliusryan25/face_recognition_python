@@ -5,7 +5,7 @@ UNKNOWN_THRESHOLD = 3
 
 #inisiasi untuk capture image
 vid = cv2.VideoCapture('rtsp://admin:Admin1234@172.17.143.55:554')
-
+vid.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 # vid = cv2.VideoCapture()
 
 # Dictionary untuk menampung data dari database

@@ -26,7 +26,7 @@ def show_binary_image(binary_data):
         root.geometry(f"{new_width}x{new_height}+0+0")
     
     # Atur timer untuk menutup jendela setelah 1000 milidetik (1 detik)
-    root.after(3000, root.destroy)
+    root.after(1500, root.destroy)
 
     # Jalankan loop utama tkinter
     root.mainloop()
