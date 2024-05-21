@@ -183,11 +183,30 @@ while True:
                     binary_data = get_binary_data_from_database()
                     # Menampilkan gambar
                     show_binary_image(binary_data)
+
+                    # Menggunakan frame
+                    # show_dataframe(conn)
+
+                    # Gunakan fungsi fetch_data untuk mengambil data
+                    data = fetch_data(conn)
+
+                    # Menggunakan pandas untuk membuat DataFrame dan menampilkan dalam bentuk tabel
+                    df = pd.DataFrame(data, columns=['nama_karyawan', 'jam_masuk'])
+
+                    # Penomoran
+                    df.index = df.index + 1
+
+                    # Menggunakan pandas untuk memformat kolom 'jam_masuk' agar hanya menampilkan jam dan menit
+                    df['jam_masuk'] = pd.to_datetime(df['jam_masuk']).dt.strftime('%H:%M')
+
+                    # Mengubah nama kolom di DataFrame
+                    df.rename(columns={'nama_karyawan': 'Nama Karyawan', 'jam_masuk': 'Jam Masuk'}, inplace=True)
+                    
+                    print(df)
     else:
         # Tambahkan timestamp pada frame
         pesan = "Bukan Waktu Absen"
         cv2.putText(frame, pesan, (6, frame.shape[0] - 9), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,255), 5)
-       
 
     # Keterangan jumlah wajah yang terdeteksi
     jumlah_wajah_terdeteksi = str(len(face_names))
@@ -196,7 +215,7 @@ while True:
 
     # Tekan 'q' untuk keluar dari loop
     if cv2.waitKey(10) & 0xFF == ord('q'):
-        break   
+        break
 
 # Lepaskan kamera dan tutup semua jendela
 vid.release()

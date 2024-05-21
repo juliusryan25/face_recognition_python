@@ -41,3 +41,8 @@ with get_connection() as conn:
             rows = cur.fetchall()
     except Exception as e:
         print(f"Terjadi kesalahan: {e}")
+
+def fetch_data(conn):
+    with conn.cursor() as cur:
+        cur.execute("SELECT nama_karyawan, jam_masuk FROM data_absen")
+        return cur.fetchall()

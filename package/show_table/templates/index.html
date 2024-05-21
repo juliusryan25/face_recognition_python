@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rekap Kehadiran Karyawan</title>
+</head>
+<body>
+    <table>
+        <tr>
+            <th>No</th>
+            <th>Nama Karyawan</th>
+            <th>Jam Masuk</th>
+        </tr>
+        {% for employee in attendance_data %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ employee.nama_karyawan }}</td>
+            <td>{{ employee.jam_masuk }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
