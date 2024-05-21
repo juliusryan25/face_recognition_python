@@ -28,9 +28,8 @@ for row in rows:
 
 
 # Tutup cursor dan koneksi
-cur.close()
-conn.close()
-
+# cur.close()
+# conn.close()
 
 face_locations = []
 face_encodings = []
@@ -45,7 +44,6 @@ while True:
     # Tambahkan timestamp pada frame
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     cv2.putText(frame, timestamp, (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 2)
-
 
     # Skala kecil dan konversi gambar
     small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
@@ -116,8 +114,17 @@ while True:
                 file_path = os.path.join(folder_path, face_filename)
                 cv2.imwrite(file_path, face_image)
                 # time.sleep(2)
+                nama_karyawan = name
+                jam_masuk = datetime.now()
+
+                upload_to_database(nama_karyawan, file_path, jam_masuk, conn)
                 print(f"Gambar berhasil disimpan sebagai {face_filename}")
                 captured_names.append(name)
+
+            # Mengambil data binary dari database
+            binary_data = get_binary_data_from_database()
+            # Menampilkan gambar
+            show_binary_image(binary_data)
 
     # Keterangan jumlah wajah yang terdeteksi
     jumlah_wajah_terdeteksi = str(len(face_names))

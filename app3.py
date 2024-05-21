@@ -1,40 +1,42 @@
-import cv2
-import face_recognition
-import numpy as np
-from datetime import datetime
+from package import *
 
 # Ambang batas untuk mengidentifikasi wajah yang tidak dikenal
 UNKNOWN_THRESHOLD = 0.5
 
 vid = cv2.VideoCapture(0)
- 
-# Data dictionary yang Anda miliki
-data = {
-    # "ID001": {"nama": "julius", "image": "muka1.jpg"},
-    "ID002": {"nama": "daffa", "image": "muka2.jpg"},
-    "ID003": {"nama": "ipul", "image": "muka3.jpeg"},
-    "ID004": {"nama": "maemunah", "image": "muka4.jpeg"}
-}
-
-# image_files = ["muka2.jpg","muka3.jpeg","muka4.jpeg"]
-# known_face_names = ["Daffa","Ipul","maemunah"]
 
 # Inisialisasi daftar untuk menyimpan enkoding dan nama
 known_face_encodings = []
 known_face_names = []
 
-# Muat setiap gambar dan dapatkan enkoding wajah
-# Muat setiap gambar dari data dictionary dan dapatkan enkoding wajah
-for id, info in data.items():
-    image_file = info["image"]
-    name = info["nama"]
-    image_source = face_recognition.load_image_file(image_file)
+# Buat koneksi ke database
+conn = get_connection()
+
+# Cursor untuk menjalankan query
+cur = conn.cursor()
+
+# Jalankan query untuk mengambil data wajah yang dikenal
+cur.execute("SELECT id, nama_karyawan, foto_karyawan FROM data_karyawan")
+rows = cur.fetchall()
+
+# Dictionary untuk menyimpan data dari database
+data = {}
+
+# Loop melalui setiap baris hasil query dan isi dictionary
+for row in rows:
+    id, name, image_file = row
+    data[f"employee"] = [{"id": id, "nama": name, "image": image_file}]
+    image_source = face_recognition.load_image_file("package/wajah/"+image_file)
     face_encodings = face_recognition.face_encodings(image_source)
     if face_encodings:
         known_face_encodings.append(face_encodings[0])
         known_face_names.append(name)
     else:
         print(f"Tidak ada wajah yang ditemukan dalam gambar {image_file}.")
+    # print(data)
+# Tutup cursor dan koneksi
+cur.close()
+conn.close()
 
 face_locations = []
 face_encodings = []
@@ -75,6 +77,13 @@ while True:
 
     process_this_frame = not process_this_frame
 
+    # Tentukan path folder tempat Anda ingin menyimpan gambar
+    folder_path = 'package/capture'
+
+    # Pastikan folder tersebut ada, jika tidak, buat folder tersebut
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
     # Tampilkan hasil dalam jendela
     for (top, right, bottom, left), name in zip(face_locations, face_names):
         top *= 4
@@ -82,19 +91,25 @@ while True:
         bottom *= 4
         left *= 4
 
+        if name == "Unknown":
+            color = (0, 0, 255)
+        else:
+            color = (0, 255, 0)
         # Gambar kotak dan label nama
-        cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
-        cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
+        cv2.rectangle(frame, (left, top), (right, bottom), color, 2)
+        cv2.rectangle(frame, (left, bottom - 35), (right, bottom), color, cv2.FILLED)
         font = cv2.FONT_HERSHEY_DUPLEX
         cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
 
         # Jika nama yang terdeteksi sesuai dan belum di-capture, lakukan screen capture
-        # if name in known_face_names and name not in captured_names:
-        #     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
-        #     cv2.imwrite(f'{name} {timestamp}.jpg', frame)
-        #     print(f"Gambar berhasil disimpan sebagai {name}|{timestamp}.jpg")
-        #     captured_names.append(name) 
-        #     print(captured_names) # Tambahkan nama ke daftar nama yang telah di-capture
+        if name in known_face_names and name not in captured_names:
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
+            file_name = f'{name} {timestamp}.jpg'
+            file_path = os.path.join(folder_path, file_name)
+            cv2.imwrite(file_path, frame)
+            print(f"Gambar berhasil disimpan sebagai {name}|{timestamp}.jpg")
+            captured_names.append(name) 
+            print(captured_names) # Tambahkan nama ke daftar nama yang telah di-capture
 
     cv2.imshow('frame', frame)
 
