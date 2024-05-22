@@ -15,3 +15,4 @@ from io import BytesIO
 import base64
 from package.binary_image.image_display import show_binary_image, get_binary_data_from_database
 import threading
+import dlib
