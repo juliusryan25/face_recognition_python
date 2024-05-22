@@ -17,6 +17,7 @@ face_encodings = []
 face_names = []
 process_this_frame = True
 captured_names = []  # Daftar untuk menyimpan nama yang telah di-capture
+frame_skip = 2
 
 # Loop melalui setiap baris hasil query dan isi dictionary
 for row in rows:
@@ -31,6 +32,31 @@ for row in rows:
         known_face_names.append(name)
     else:
         print(f"Tidak ada wajah yang ditemukan dalam gambar {image_file}.")
+
+#proses pencocokan gambar
+def process_frame(frame):
+    # Ubah ukuran frame ke skala yang lebih kecil untuk mempercepat proses
+    small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
+    rgb_small_frame = small_frame[:, :, ::-1]
+
+    # Dapatkan lokasi dan encoding wajah
+    face_locations = face_recognition.face_locations(rgb_small_frame, model="hog")
+    face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
+
+    face_names = []
+    for face_encoding in face_encodings:
+        matches = np.array(face_recognition.compare_faces(known_face_encodings, face_encoding))
+        name = "Unknown"
+        
+        face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
+        best_match_index = np.argmin(face_distances)
+
+        if matches[best_match_index] and face_distances[best_match_index] < UNKNOWN_THRESHOLD:
+            name = known_face_names[best_match_index]
+
+        face_names.append(name)
+
+    return face_locations, face_names
 
 
 # Proses Kompres Gambar dan Upload
@@ -83,27 +109,9 @@ while True:
     if absen_masuk_start <= now <= absen_masuk_end or absen_pulang_start <= now <= absen_pulang_end:
 
         if process_this_frame:
-            # Dapatkan lokasi dan enkoding wajah
-            face_locations = face_recognition.face_locations(rgb_small_frame, model="hog")
-            face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
+            face_locations, face_names = process_frame(frame)
 
-            face_names = []
-            for face_encoding in face_encodings:
-                # Bandingkan wajah yang dikenal dengan wajah yang terdeteksi
-                matches = np.array(face_recognition.compare_faces(known_face_encodings, face_encoding))
-                #matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
-                name = "Unknown"
-
-                # Jika cocok, dapatkan nama wajah
-                face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
-                best_match_index = np.argmin(face_distances)
-
-                if matches[best_match_index] and face_distances[best_match_index] < UNKNOWN_THRESHOLD:
-                    name = known_face_names[best_match_index]
-
-                face_names.append(name)
-
-        process_this_frame = not process_this_frame
+        process_this_frame = (process_this_frame + 1) % frame_skip == 0
         
         # Tentukan path folder tempat Anda ingin menyimpan gambar
         folder_path = 'package/capture'
@@ -198,7 +206,6 @@ while True:
     #menampilkan aplikasi
     cv2.imshow('frame', frame)
 
-    
 
 # Lepaskan kamera dan tutup semua jendela
 vid.release()
