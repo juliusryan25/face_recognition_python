@@ -6,7 +6,7 @@ def get_connection():
         database="xacti",
         port="5432",
         user="postgres",
-        password="juliusryanlistianto25"
+        password="sql123"
     )
     return conn
 
