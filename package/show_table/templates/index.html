@@ -4,41 +4,40 @@
     <meta charset="UTF-8">
     <title>Rekap Kehadiran Karyawan</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
 </head>
 <body>
-    <table id="data-table" border="1">
-        <!-- Tabel akan diisi dengan data dari server -->
-    </table>
-    <!-- <table border="1">
-        <tr>
-            <th>No</th>
-            <th>Nama Karyawan</th>
-            <th>Tanggal</th>
-            <th>Jam Masuk</th>
-        </tr>
-        {% for data in attendance_data %}
-        <tr>
-            <td>{{ loop.index }}</td>
-            <td>{{ data[0] }}</td>
-            <td>{{ data[1].strftime('%D') }}</td>
-            <td>{{ data[1].strftime('%H:%M') }}</td>
-        </tr>
-        {% endfor %}
-    </table> -->
+    <div class="container-fluid p-3">
+        <div class="row">
+            <div class="col-6 bg-danger">
+                <h3>Absen Masuk</h3>
+                <table class="table" id="data-table-masuk" border="1">
+                    <!-- Tabel akan diisi dengan data dari server -->
+                </table>
+            </div>
+            <div class="col-6 bg-warning">
+                <h3>Absen Pulang</h3>
+                <table class="table" id="data-table-pulang" border="1">
+                    <!-- Tabel akan diisi dengan data dari server -->
+                </table>
+            </div>
+        </div>
+
+    </div>
     <script>
-        function fetchData() {
+        function fetchDataMasuk() {
             $.ajax({
-                url: '/get_data',
+                url: '/get_data_masuk',
                 type: 'GET',
                 success: function(data) {
-                    var table = $('#data-table');
+                    var table = $('#data-table-masuk');
                     table.empty(); // Bersihkan tabel lama
                     // header tabel
-                    table.append('<tr><th>No</th><th>Nama Karyawan</th><th>Tanggal</th><th>Jam Masuk</th></tr>');
+                    table.append('<tr><th>No</th><th>NIK</th><th>Nama Karyawan</th><th>Tanggal</th><th>Jam Masuk</th></tr>');
                     // Iterasi dan tambahkan data ke tabel
                     data.forEach(function(row, index) {
                         // Format tanggal dan jam dari row[1]
-                        var date = new Date(row[1]);
+                        var date = new Date(row[2]);
                         var formattedDate = date.toLocaleDateString('id-ID', {
                                             weekday: "long",
                                             month: "long",
@@ -50,14 +49,47 @@
                                             minute: "2-digit"
                                             });
                         // Tambahkan baris dengan nomor urut dan data yang sudah diformat
-                        table.append('<tr><td>' + (index + 1) + '</td><td>' + row[0] + '</td><td>' + formattedDate + '</td><td>' + formattedTime + '</td></tr>');
+                        table.append('<tr><td>' + (index + 1) + '</td><td>' + row[3] + '</td><td>' + row[1] + '</td><td>' + formattedDate + '</td><td>' + formattedTime + '</td></tr>');
+                    });
+                }
+            });
+        }
+
+        function fetchDataPulang() {
+            $.ajax({
+                url: '/get_data_pulang',
+                type: 'GET',
+                success: function(data_pulang) {
+                    var table = $('#data-table-pulang');
+                    table.empty(); // Bersihkan tabel lama
+                    // header tabel
+                    table.append('<tr><th>No</th><th>NIK</th><th>Nama Karyawan</th><th>Tanggal</th><th>Jam Pulang</th></tr>');
+                    // Iterasi dan tambahkan data ke tabel
+                    data.forEach(function(row, index) {
+                        // Format tanggal dan jam dari row[1]
+                        var date = new Date(row[2]);
+                        var formattedDate = date.toLocaleDateString('id-ID', {
+                                            weekday: "long",
+                                            month: "long",
+                                            day: "numeric",
+                                            year: "numeric"
+                                            });
+                        var formattedTime = date.toLocaleTimeString('id-ID', {
+                                            hour: "2-digit",
+                                            minute: "2-digit"
+                                            });
+                        // Tambahkan baris dengan nomor urut dan data yang sudah diformat
+                        table.append('<tr><td>' + (index + 1) + '</td><td>' + row[3] + '</td><td>' + row[1] + '</td><td>' + formattedDate + '</td><td>' + formattedTime + '</td></tr>');
                     });
                 }
             });
         }
     
+    
         // Panggil fetchData setiap 5 detik untuk pembaruan data
-        setInterval(fetchData, 2000);
+        setInterval(fetchDataMasuk, 2000);
+        setInterval(fetchDataPulang, 2000);
+       
     </script>
 </body>
 </html>
