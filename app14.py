@@ -6,21 +6,25 @@ vid = cv2.VideoCapture(0)
 data = {}
 known_face_encodings = []
 known_face_names = []
+known_nik = []
 captured_names = []
 data_absen_masuk = []
 data_absen_pulang = []
 frame_skip = 2
 
 #ambil data wajah
+data[f"employee"] = []
 for row in rows:
-    id, name, image_file = row
-    data[f"employee"] = [{"id": id, "nama": name, "image": image_file}]
+    id, name, image_file, nik = row
+    data[f"employee"].append({"id": id, "nama": name, "image": image_file , "nik" : nik})
+    # data[f"employee"] = [{"id": id, "nama": name, "image": image_file , "nik" : nik}]
     image_source = face_recognition.load_image_file("package/wajah/" + image_file)
     face_encodings = face_recognition.face_encodings(image_source)
 
     if face_encodings:
         known_face_encodings.append(face_encodings[0])
         known_face_names.append(name)
+        known_nik.append(nik)
     else:
         print(f"Tidak ada wajah yang ditemukan dalam gambar {image_file}.")
 
@@ -49,7 +53,7 @@ def adjust_text_size(frame, text, max_width, min_font_size=0.5, max_font_size=1.
             return font_size, (text_width, text_height)
     return min_font_size, cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, min_font_size, 1)[0]
 
-def compress_and_save_image_masuk(image, name, folder_path, quality=70):
+def compress_and_save_image_masuk(image, name, nik, folder_path, quality=70):
     pil_image = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
     buffer = io.BytesIO()
     pil_image.save(buffer, format="JPEG", quality=quality, optimize=True)
@@ -63,13 +67,16 @@ def compress_and_save_image_masuk(image, name, folder_path, quality=70):
 
     captured_names.append(name)
     data_absen_masuk.append(name)
+    known_nik.append(nik)
     nama_karyawan = name
+    nik_karyawan = nik
     jam_masuk = datetime.now()
-    upload_to_database(nama_karyawan, file_path, jam_masuk, conn)
+    upload_to_database(nama_karyawan, file_path, jam_masuk, nik_karyawan, conn)
     print(f"Gambar berhasil disimpan sebagai {face_filename}")
     print(data_absen_masuk)
+    
 
-def compress_and_save_image_pulang(image, name, folder_path, quality=70):
+def compress_and_save_image_pulang(image, name, nik, folder_path, quality=70):
     pil_image = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
     buffer = io.BytesIO()
     pil_image.save(buffer, format="JPEG", quality=quality, optimize=True)
@@ -84,10 +91,14 @@ def compress_and_save_image_pulang(image, name, folder_path, quality=70):
     captured_names.append(name)
     data_absen_pulang.append(name)
     nama_karyawan = name
+    nik_karyawan = nik
     jam_pulang = datetime.now()
-    upload_to_database_pulang(nama_karyawan, file_path, jam_pulang, conn)
+    upload_to_database_pulang(nama_karyawan, file_path, jam_pulang, nik_karyawan, conn)
     print(f"Gambar berhasil disimpan sebagai {face_filename}")
     print(data_absen_pulang)
+
+def run_flask_app():
+    web_app.run(debug=True, use_reloader=False)
 
 
 def main():
@@ -131,17 +142,20 @@ def main():
             cv2.putText(frame, name, (left + 1, bottom + 20), cv2.FONT_HERSHEY_SIMPLEX, font_size, (255, 255, 255), 2)
 
            
-            if name in known_face_names and name not in captured_names and captured_names not in data_absen_masuk:
+            if name in known_face_names and name not in captured_names:
                 face_image = frame[top:bottom + 25, left:right]
+                index = known_face_names.index(name)
+                nik = known_nik[index]
+                
                 if face_image.size != 0:
-                    if absen_masuk_start <= now <= absen_masuk_end:
-                        compress_and_save_image_masuk(face_image, name, folder_path)
+                    if absen_masuk_start <= now <= absen_masuk_end and captured_names not in data_absen_masuk:
+                        compress_and_save_image_masuk(face_image, name, nik, folder_path)
                         binary_data = get_binary_data_from_database()
                         show_binary_image(binary_data)
 
                     elif absen_pulang_start <= now != absen_pulang_end:
                         folder_path = 'package/capture_pulang'
-                        compress_and_save_image_pulang(face_image, name, folder_path)
+                        compress_and_save_image_pulang(face_image, name, nik, folder_path)
                         binary_data_pulang = get_binary_data_from_database_pulang()
                         show_binary_image_pulang(binary_data_pulang)
 
@@ -161,4 +175,11 @@ def main():
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    main()
+    run_web = threading.Thread(target=run_flask_app)
+    run_face_recognition = threading.Thread(target=main)
+
+    run_web.start()
+    run_face_recognition.start()
+
+    run_web.join()
+    run_face_recognition.join()
