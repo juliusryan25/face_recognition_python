@@ -30,6 +30,37 @@ def upload_to_database(nama_karyawan, file_path, jam_masuk, conn):
         # Tutup kursor
         cur.close()
 
+# Fungsi untuk mengonversi gambar ke binary _absen pulang
+def convert_to_binary_pulang(filename):
+    with open(filename, 'rb') as file:
+        binary_data = file.read()
+    return binary_data
+
+def upload_to_database_pulang(nama_karyawan, file_path, jam_pulang, conn):
+    # Konversi gambar ke binary
+    foto_absen = convert_to_binary(file_path)
+
+    # Query untuk insert data
+    query = """
+    INSERT INTO data_absen_pulang (nama_karyawan, foto_absen, jam_pulang)
+    VALUES (%s, %s, %s)
+    """
+
+    # Buka kursor baru
+    cur = conn.cursor()
+
+    try:
+        # Eksekusi query
+        cur.execute(query, (nama_karyawan, foto_absen, jam_pulang))
+        # Commit perubahan
+        conn.commit()
+    except Exception as e:
+        print(f"Terjadi kesalahan: {e}")
+    finally:
+        # Tutup kursor
+        cur.close()
+
+
 # Buat koneksi ke database
 conn = get_connection()
 

@@ -7,6 +7,8 @@ data = {}
 known_face_encodings = []
 known_face_names = []
 captured_names = []
+data_absen_masuk = []
+data_absen_pulang = []
 frame_skip = 2
 
 #ambil data wajah
@@ -42,12 +44,12 @@ def process_frame(frame):
 
 def adjust_text_size(frame, text, max_width, min_font_size=0.5, max_font_size=1.5, step=0.1):
     for font_size in np.arange(max_font_size, min_font_size, -step):
-        (text_width, text_height), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, font_size, 1)
+        (text_width, text_height), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, font_size, 2)
         if text_width <= max_width:
             return font_size, (text_width, text_height)
     return min_font_size, cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, min_font_size, 1)[0]
 
-def compress_and_save_image(image, name, folder_path, quality=70):
+def compress_and_save_image_masuk(image, name, folder_path, quality=70):
     pil_image = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
     buffer = io.BytesIO()
     pil_image.save(buffer, format="JPEG", quality=quality, optimize=True)
@@ -60,10 +62,32 @@ def compress_and_save_image(image, name, folder_path, quality=70):
         f.write(image_data)
 
     captured_names.append(name)
+    data_absen_masuk.append(name)
     nama_karyawan = name
     jam_masuk = datetime.now()
     upload_to_database(nama_karyawan, file_path, jam_masuk, conn)
     print(f"Gambar berhasil disimpan sebagai {face_filename}")
+    print(data_absen_masuk)
+
+def compress_and_save_image_pulang(image, name, folder_path, quality=70):
+    pil_image = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    buffer = io.BytesIO()
+    pil_image.save(buffer, format="JPEG", quality=quality, optimize=True)
+    image_data = buffer.getvalue()
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
+    face_filename = f'{name}_{timestamp}.jpg'
+    file_path = os.path.join(folder_path, face_filename)
+
+    with open(file_path, 'wb') as f:
+        f.write(image_data)
+
+    captured_names.append(name)
+    data_absen_pulang.append(name)
+    nama_karyawan = name
+    jam_pulang = datetime.now()
+    upload_to_database_pulang(nama_karyawan, file_path, jam_pulang, conn)
+    print(f"Gambar berhasil disimpan sebagai {face_filename}")
+    print(data_absen_pulang)
 
 
 def main():
@@ -78,48 +102,58 @@ def main():
         timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
         cv2.putText(frame, timestamp, (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
-        if absen_masuk_start <= now <= absen_masuk_end or absen_pulang_start <= now <= absen_pulang_end:
-            if process_this_frame:
+       
+        if process_this_frame:
                 face_locations, face_names = process_frame(frame)
 
-            process_this_frame = not process_this_frame
+        process_this_frame = not process_this_frame
 
-            folder_path = 'package/capture'
-            if not os.path.exists(folder_path):
-                os.makedirs(folder_path)
+        folder_path = 'package/capture'
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
 
-            for (top, right, bottom, left), name in zip(face_locations, face_names):
-                top *= 4
-                right *= 4
-                bottom *= 4
-                left *= 4
+        for (top, right, bottom, left), name in zip(face_locations, face_names):
+            top *= 4
+            right *= 4
+            bottom *= 4
+            left *= 4
 
-                text_bottom = bottom + 25
-                max_text_width = right - left
-                font_size, (text_width, text_height) = adjust_text_size(frame, name, max_text_width)
+            text_bottom = bottom + 25
+            max_text_width = right - left
+            font_size, (text_width, text_height) = adjust_text_size(frame, name, max_text_width)
 
-                if text_bottom > frame.shape[0]:
+            if text_bottom > frame.shape[0]:
                     text_bottom = frame.shape[0] - 10
 
-                rectangle_color = (0, 0, 255) if name == "Unknown" else (0, 255, 0)
-                cv2.rectangle(frame, (left, top), (right, bottom), rectangle_color, 2)
-                cv2.rectangle(frame, (left, text_bottom - text_height + 3), (left + text_width, text_bottom + 3), rectangle_color, cv2.FILLED)
-                cv2.putText(frame, name, (left + 1, bottom + 20), cv2.FONT_HERSHEY_SIMPLEX, font_size, (255, 255, 255), 1)
+            rectangle_color = (0, 0, 255) if name == "Unknown" else (0, 255, 0)
+            cv2.rectangle(frame, (left, top), (right, bottom), rectangle_color, 2)
+            cv2.rectangle(frame, (left, text_bottom - text_height + 3), (left + text_width, text_bottom + 3), rectangle_color, cv2.FILLED)
+            cv2.putText(frame, name, (left + 1, bottom + 20), cv2.FONT_HERSHEY_SIMPLEX, font_size, (255, 255, 255), 2)
 
-                if name in known_face_names and name not in captured_names:
-                    face_image = frame[top:bottom + 25, left:right]
-                    if face_image.size != 0:
-                        compress_and_save_image(face_image, name, folder_path)
+           
+            if name in known_face_names and name not in captured_names and captured_names not in data_absen_masuk:
+                face_image = frame[top:bottom + 25, left:right]
+                if face_image.size != 0:
+                    if absen_masuk_start <= now <= absen_masuk_end:
+                        compress_and_save_image_masuk(face_image, name, folder_path)
                         binary_data = get_binary_data_from_database()
                         show_binary_image(binary_data)
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-        else:
-            pesan = "Bukan Waktu Absen"
-            cv2.putText(frame, pesan, (6, frame.shape[0] - 9), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 5)
+                    elif absen_pulang_start <= now != absen_pulang_end:
+                        folder_path = 'package/capture_pulang'
+                        compress_and_save_image_pulang(face_image, name, folder_path)
+                        binary_data_pulang = get_binary_data_from_database_pulang()
+                        show_binary_image_pulang(binary_data_pulang)
 
-        jumlah_wajah_terdeteksi = str(len(face_names))
+                    else:
+                        pesan = "Bukan Waktu Absen"
+                        cv2.putText(frame, pesan, (6, frame.shape[0] - 9), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 5)         
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+        
+
+        jumlah_wajah_terdeteksi = str(len(data_absen_masuk))
         cv2.putText(frame, jumlah_wajah_terdeteksi, (10, frame.shape[0] - 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
         cv2.imshow('frame', frame)
 
