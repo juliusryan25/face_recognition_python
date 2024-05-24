@@ -9,15 +9,15 @@
 <body>
     <div class="container-fluid p-3">
         <div class="row">
-            <div class="col-6 bg-danger">
+            <div class="col-6 shadow rounded pt-1">
                 <h3>Absen Masuk</h3>
-                <table class="table" id="data-table-masuk" border="1">
+                <table class="table table-striped" id="data-table-masuk" border="1">
                     <!-- Tabel akan diisi dengan data dari server -->
                 </table>
             </div>
-            <div class="col-6 bg-warning">
+            <div class="col-6 bg-dark text-light pt-1">
                 <h3>Absen Pulang</h3>
-                <table class="table" id="data-table-pulang" border="1">
+                <table class="table table-striped text-light" id="data-table-pulang" style="border: 1px solid white;">
                     <!-- Tabel akan diisi dengan data dari server -->
                 </table>
             </div>
@@ -33,7 +33,7 @@
                     var table = $('#data-table-masuk');
                     table.empty(); // Bersihkan tabel lama
                     // header tabel
-                    table.append('<tr><th>No</th><th>NIK</th><th>Nama Karyawan</th><th>Tanggal</th><th>Jam Masuk</th></tr>');
+                    table.append('<thead class="thead-dark"><tr><th>No</th><th>NIK</th><th>Nama Karyawan</th><th>Tanggal</th><th>Jam Masuk</th></tr></thead>');
                     // Iterasi dan tambahkan data ke tabel
                     data.forEach(function(row, index) {
                         // Format tanggal dan jam dari row[1]
@@ -49,21 +49,30 @@
                                             minute: "2-digit"
                                             });
                         // Tambahkan baris dengan nomor urut dan data yang sudah diformat
-                        table.append('<tr><td>' + (index + 1) + '</td><td>' + row[3] + '</td><td>' + row[1] + '</td><td>' + formattedDate + '</td><td>' + formattedTime + '</td></tr>');
+                        table.append('<tbody><tr><td>' + (index + 1) + '</td><td>' + row[3] + '</td><td>' + row[1] + '</td><td>' + formattedDate + '</td><td>' + formattedTime + '</td></tr></tbody>');
                     });
                 }
             });
         }
 
+        
+    
+    
+        // Panggil fetchData setiap 5 detik untuk pembaruan data
+        setInterval(fetchDataMasuk, 2000);
+        
+       
+    </script>
+    <script>
         function fetchDataPulang() {
             $.ajax({
                 url: '/get_data_pulang',
                 type: 'GET',
-                success: function(data_pulang) {
+                success: function(data) {
                     var table = $('#data-table-pulang');
                     table.empty(); // Bersihkan tabel lama
                     // header tabel
-                    table.append('<tr><th>No</th><th>NIK</th><th>Nama Karyawan</th><th>Tanggal</th><th>Jam Pulang</th></tr>');
+                    table.append('<thead class="thead-light"><tr><th>No</th><th>NIK</th><th>Nama Karyawan</th><th>Tanggal</th><th>Jam Pulang</th></tr></thead>');
                     // Iterasi dan tambahkan data ke tabel
                     data.forEach(function(row, index) {
                         // Format tanggal dan jam dari row[1]
@@ -79,17 +88,13 @@
                                             minute: "2-digit"
                                             });
                         // Tambahkan baris dengan nomor urut dan data yang sudah diformat
-                        table.append('<tr><td>' + (index + 1) + '</td><td>' + row[3] + '</td><td>' + row[1] + '</td><td>' + formattedDate + '</td><td>' + formattedTime + '</td></tr>');
+                        table.append('<tbody><tr><td>' + (index + 1) + '</td><td>' + row[3] + '</td><td>' + row[1] + '</td><td>' + formattedDate + '</td><td>' + formattedTime + '</td></tr></tbody>');
                     });
                 }
             });
         }
-    
-    
-        // Panggil fetchData setiap 5 detik untuk pembaruan data
         setInterval(fetchDataMasuk, 2000);
         setInterval(fetchDataPulang, 2000);
-       
-    </script>
+        </script>
 </body>
 </html>
