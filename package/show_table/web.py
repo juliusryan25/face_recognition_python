@@ -10,7 +10,7 @@ def index():
 @app.route('/get_data')
 def get_data():
     # Ambil data dari database
-    data = fetch_data(conn)yy
+    data = fetch_data(conn)
     return jsonify(data)
 
 # @app.route('/')
