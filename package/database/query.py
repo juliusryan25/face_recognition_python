@@ -73,12 +73,12 @@ with get_connection() as conn:
     except Exception as e:
         print(f"Terjadi kesalahan: {e}")
 
-def fetch_data(conn):
+def fetch_data_masuk(conn):
     with conn.cursor() as cur:
         cur.execute("SELECT * FROM ( SELECT id, nama_karyawan, jam_masuk, nik FROM data_absen ORDER BY id DESC LIMIT 10 ) AS sub ORDER BY id ASC")
         return cur.fetchall()
 
 def fetch_data_pulang(conn):
-    with conn.cursor() as cur:
-        cur.execute("SELECT * FROM ( SELECT id, nama_karyawan, jam_pulang, nik FROM data_absen_pulang ORDER BY id DESC LIMIT 10 ) AS sub ORDER BY id ASC")
-        return cur.fetchall()
+    with conn.cursor() as cer:
+        cer.execute("SELECT * FROM ( SELECT id, nama_karyawan, jam_pulang, nik FROM data_absen_pulang ORDER BY id DESC LIMIT 10 ) AS sub ORDER BY id ASC")
+        return cer.fetchall()
