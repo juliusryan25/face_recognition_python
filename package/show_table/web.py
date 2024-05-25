@@ -18,3 +18,4 @@ def get_data_pulang():
     # Ambil data dari database
     data = fetch_data_pulang(conn)
     return jsonify(data)
+
