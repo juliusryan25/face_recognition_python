@@ -9,15 +9,15 @@
 <body>
     <div class="container-fluid p-3">
         <div class="row">
-            <div class="col-6 shadow rounded pt-1">
+            <div class="col-6">
                 <h3>Absen Masuk</h3>
-                <table class="table table-striped" id="data-table-masuk" border="1">
+                <table class="table table-striped shadow rounded pt-1" id="data-table-masuk" border="1">
                     <!-- Tabel akan diisi dengan data dari server -->
                 </table>
             </div>
-            <div class="col-6 bg-dark text-light pt-1">
+            <div class="col-6">
                 <h3>Absen Pulang</h3>
-                <table class="table table-striped text-light" id="data-table-pulang" style="border: 1px solid white;">
+                <table class="table table-striped shadow rounded pt-1" id="data-table-pulang" border="1">
                     <!-- Tabel akan diisi dengan data dari server -->
                 </table>
             </div>
@@ -49,19 +49,13 @@
                                             minute: "2-digit"
                                             });
                         // Tambahkan baris dengan nomor urut dan data yang sudah diformat
-                        table.append('<tbody><tr><td>' + (index + 1) + '</td><td>' + row[3] + '</td><td>' + row[1] + '</td><td>' + formattedDate + '</td><td>' + formattedTime + '</td></tr></tbody>');
+                        table.append('<tbody class="table-light"><tr><td>' + (index + 1) + '</td><td>' + row[3] + '</td><td>' + row[1] + '</td><td>' + formattedDate + '</td><td>' + formattedTime + '</td></tr></tbody>');
                     });
                 }
             });
         }
-
-        
-    
-    
         // Panggil fetchData setiap 5 detik untuk pembaruan data
         setInterval(fetchDataMasuk, 2000);
-        
-       
     </script>
     <script>
         function fetchDataPulang() {
@@ -88,12 +82,11 @@
                                             minute: "2-digit"
                                             });
                         // Tambahkan baris dengan nomor urut dan data yang sudah diformat
-                        table.append('<tbody><tr><td>' + (index + 1) + '</td><td>' + row[3] + '</td><td>' + row[1] + '</td><td>' + formattedDate + '</td><td>' + formattedTime + '</td></tr></tbody>');
+                        table.append('<tbody class="table-dark"><tr><td>' + (index + 1) + '</td><td>' + row[3] + '</td><td>' + row[1] + '</td><td>' + formattedDate + '</td><td>' + formattedTime + '</td></tr></tbody>');
                     });
                 }
             });
         }
-        setInterval(fetchDataMasuk, 2000);
         setInterval(fetchDataPulang, 2000);
         </script>
 </body>

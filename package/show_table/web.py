@@ -10,21 +10,7 @@ def index():
 @app.route('/get_data_masuk')
 def get_data():
     # Ambil data dari database
-    data = fetch_data_pulang(conn)
-    return jsonify(data)
-
-@app.route('/get_data_pulang')
-def get_data_pulang():
-def get_data_masuk():
-    # Ambil data dari database
-    data = fetch_data_pulang(conn)
     data = fetch_data_masuk(conn)
-    return jsonify(data)
-
-@app.route('/get_data_pulang')
-def get_data_pulang():
-    # Ambil data dari database
-    data = fetch_data_pulang(conn)
     return jsonify(data)
 
 @app.route('/get_data_pulang')
