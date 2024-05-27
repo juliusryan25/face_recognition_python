@@ -1,6 +1,6 @@
 from package import *
 
-UNKNOWN_THRESHOLD = 0.6  # lebih rendah untuk meningkatkan akurasi
+UNKNOWN_THRESHOLD = 0.5  # lebih rendah untuk meningkatkan akurasi
 
 vid = cv2.VideoCapture(0)
 data = {}
@@ -31,7 +31,7 @@ for row in rows:
 def process_frame(frame):
     small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
     rgb_small_frame = small_frame[:, :, ::-1]
-    face_locations = face_recognition.face_locations(rgb_small_frame, model="hog")
+    face_locations = face_recognition.face_locations(rgb_small_frame, model="hog",number_of_times_to_upsample=2)
     face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
 
     face_names = []
@@ -73,13 +73,21 @@ def compress_and_save_image_masuk(image, name, nik, folder_path, quality=70):
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
     face_filename = f'{name}_{timestamp}.jpg'
     file_path = os.path.join(folder_path, face_filename)
+    batas_waktu_telat = datetime.now().replace(hour=7, minute=30, second=0, microsecond=0)
+    
+    if jam_masuk <= batas_waktu_telat :
+        keterangan = "Tepat Waktu"
+    
+    else : 
+        keterangan = "Terlambat"
+    
 
     with open(file_path, 'wb') as f:
         f.write(image_data)
 
     data_absen_masuk.append(name)
     known_nik.append(nik)
-    upload_to_database(nama_karyawan, file_path, jam_masuk, nik_karyawan, conn)
+    upload_to_database(nama_karyawan, file_path, jam_masuk, nik_karyawan, keterangan, conn)
     print(f"Gambar berhasil disimpan sebagai {face_filename}")
     print(f"Ini data absen masuk{data_absen_masuk}")
     
@@ -173,7 +181,7 @@ def main():
                         show_binary_image(binary_data)
                         
                 elif absen_pulang_start <= now <= absen_pulang_end: 
-                    if name not in data_absen_pulang and data_absen_pulang not in captured_names:
+                    if name not in data_absen_pulang and data_absen_pulang not in captured_names and name in data_absen_masuk:
                         folder_path = 'package/capture_pulang'
                         compress_and_save_image_pulang(face_image, name, nik, folder_path)
                         binary_data_pulang = get_binary_data_from_database_pulang()

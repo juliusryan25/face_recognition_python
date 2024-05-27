@@ -8,7 +8,7 @@ import os
 import io
 from package.database.koneksi import get_connection
 
-from package.database.query import rows,conn,cur, upload_to_database , upload_to_database_pulang , fetch_data_masuk , fetch_data_pulang
+from package.database.query import rows,conn,cur, upload_to_database , upload_to_database_pulang , fetch_data_masuk , fetch_data_pulang, fetch_data_absen
 
 import tkinter as tk
 from tkinter import ttk
