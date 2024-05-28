@@ -17,7 +17,6 @@ data[f"employee"] = []
 for row in rows:
     id, name, image_file, nik = row
     data[f"employee"].append({"id": id, "nama": name, "image": image_file , "nik" : nik})
-    # data[f"employee"] = [{"id": id, "nama": name, "image": image_file , "nik" : nik}]
     image_source = face_recognition.load_image_file("package/wajah/" + image_file)
     face_encodings = face_recognition.face_encodings(image_source)
 
