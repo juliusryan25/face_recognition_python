@@ -9,22 +9,17 @@
 <body>
     <div class="container-fluid p-3">
         <div class="row">
-            <div class="col-6">
-                <h3>Absen Masuk</h3>
-                <table class="table table-striped shadow rounded pt-1" id="data-table-masuk" border="1">
-                    <!-- Tabel akan diisi dengan data dari server -->
-                </table>
-            </div>
-            <div class="col-6">
-                <h3>Absen Pulang</h3>
-                <table class="table table-striped shadow rounded pt-1" id="data-table-pulang" border="1">
+        
+            <div class="col-12">
+                <h3>Absen</h3>
+                <table class="table table-striped shadow rounded pt-1" id="data-table-absen">
                     <!-- Tabel akan diisi dengan data dari server -->
                 </table>
             </div>
         </div>
 
     </div>
-    <script>
+    <!-- <script>
         function fetchDataMasuk() {
             $.ajax({
                 url: '/get_data_masuk',
@@ -56,6 +51,7 @@
         }
         // Panggil fetchData setiap 5 detik untuk pembaruan data
         setInterval(fetchDataMasuk, 2000);
+        
     </script>
     <script>
         function fetchDataPulang() {
@@ -88,6 +84,51 @@
             });
         }
         setInterval(fetchDataPulang, 2000);
-        </script>
+    </script> -->
+    <script>
+        function fetchDataAbsen() {
+            $.ajax({
+                url: '/get_data_absen',
+                type: 'GET',
+                success: function(data) {
+                    var table = $('#data-table-absen');
+                    table.empty(); // Bersihkan tabel lama
+                    // header tabel
+                    table.append('<thead class="thead-dark"><tr><th>No</th><th>NIK</th><th>Nama Karyawan</th><th>Departemen</th><th>Tanggal</th><th>Jam Kerja</th><th>Jam Masuk</th><th>Jam Pulang</th><th>Keterangan</th></tr></thead>');
+                    // Iterasi dan tambahkan data ke tabel
+                    data.forEach(function(row, index) {
+                        // Format tanggal dan jam dari row[1]
+                        var dateMasuk = new Date(row[2]);
+                        var datePulang = new Date(row[3]);
+                        if (row[3] == null) {
+                            var formattedTimePulang = "-"
+                        }
+                        else{
+                            var formattedTimePulang = datePulang.toLocaleTimeString('id-ID', {
+                                                hour: "2-digit",
+                                                minute: "2-digit"
+                                                });
+                            
+                        }
+                        var formattedDate = dateMasuk.toLocaleDateString('id-ID', {
+                                            weekday: "long",
+                                            month: "long",
+                                            day: "numeric",
+                                            year: "numeric"
+                                            });
+                        var formattedTimeMasuk = dateMasuk.toLocaleTimeString('id-ID', {
+                                            hour: "2-digit",
+                                            minute: "2-digit"
+                                            });
+                        // Tambahkan baris dengan nomor urut dan data yang sudah diformat
+                        table.append('<tbody class="table-light"><tr><td>' + (index + 1) + '</td><td>' + row[0] + '</td><td>' + row[1] + '</td><td>' + row[4] + '</td><td>' + formattedDate + '</td><td>' + row[5] + '</td><td>' + formattedTimeMasuk + '</td><td>' + formattedTimePulang + '</td><td>' + row[6] + '</td></tr></tbody>');
+                    });
+                }
+            });
+        }
+        // Panggil fetchData setiap 5 detik untuk pembaruan data
+        setInterval(fetchDataAbsen, 2000);
+       
+    </script>
 </body>
 </html>

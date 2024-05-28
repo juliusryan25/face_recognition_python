@@ -19,3 +19,8 @@ def get_data_pulang():
     data = fetch_data_pulang(conn)
     return jsonify(data)
 
+@app.route('/get_data_absen')
+def get_data_absen():
+    # Ambil data dari database
+    data = fetch_data_absen(conn)
+    return jsonify(data)
