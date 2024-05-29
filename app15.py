@@ -73,7 +73,7 @@ def compress_and_save_image_masuk(image, name, nik, folder_path, quality=70):
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
     face_filename = f'{name}_{timestamp}.jpg'
     file_path = os.path.join(folder_path, face_filename)
-    batas_waktu_telat = datetime.now().replace(hour=7, minute=30, second=0, microsecond=0)
+    batas_waktu_telat = datetime.now().replace(hour=9, minute=30, second=0, microsecond=0)
     
     if jam_masuk <= batas_waktu_telat :
         keterangan = "Tepat Waktu"
