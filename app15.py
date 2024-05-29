@@ -125,7 +125,7 @@ def compress_and_save_image_pulang(image, name, nik, folder_path, quality=70):
 
 
 def run_flask_app():
-    web_app.run(debug=True, use_reloader=False)
+    web_app.run(host='192.128.12.8', port=5000, debug=True, use_reloader=False)
 
 
 def main():

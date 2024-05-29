@@ -1,7 +1,7 @@
 from package import *
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:sql123@localhost/xacti'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:postgres123@192.128.12.157/xacti'
 db = SQLAlchemy(app)
 @app.route('/')
 def index():
